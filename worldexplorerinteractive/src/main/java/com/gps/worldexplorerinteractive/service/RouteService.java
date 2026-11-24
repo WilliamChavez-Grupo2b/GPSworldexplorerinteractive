@@ -28,11 +28,20 @@ public class RouteService {
 
     public List<RouteOption> planRoutes(String origin, String destination,
                                         boolean avoidTolls, boolean preferSafeRoutes) {
-        // RF-08: geocodificación real de origen y destino mediante la API
-        GeoService.GeoPoint start = geoService.geocode(origin);
-        GeoService.GeoPoint end = geoService.geocode(destination);
+        return planRoutes(origin, destination, avoidTolls, preferSafeRoutes, null, null);
+    }
 
-        List<RouteOption> options = generateCandidateRoutes(start, end);
+    public List<RouteOption> planRoutes(String origin, String destination,
+                                        boolean avoidTolls, boolean preferSafeRoutes,
+                                        GeoService.GeoPoint start, GeoService.GeoPoint end) {
+        if (start == null) {
+            start = geoService.geocode(origin);
+        }
+        if (end == null) {
+            end = geoService.geocode(destination);
+        }
+
+        List<RouteOption> options = generateCandidateRoutes(start, end, avoidTolls);
         for (RouteOption r : options) {
             r.setScore(computeScore(r, avoidTolls, preferSafeRoutes));
         }
@@ -40,13 +49,14 @@ public class RouteService {
         return routeOptionRepository.saveAll(options);
     }
 
-    private List<RouteOption> generateCandidateRoutes(GeoService.GeoPoint start, GeoService.GeoPoint end) {
+    private List<RouteOption> generateCandidateRoutes(GeoService.GeoPoint start, GeoService.GeoPoint end,
+                                                       boolean avoidTolls) {
         String[] names = {"Ruta rápida", "Ruta segura", "Ruta panorámica"};
         String[] weathers = {"DESPEJADO", "LLUVIA", "NIEBLA", "NIEVE"};
         List<RouteOption> list = new ArrayList<>();
 
         // Ruta base real calculada por la API (distancia, duración y geometría)
-        GeoService.GeoRoute base = geoService.directions(start, end);
+        GeoService.GeoRoute base = geoService.directions(start, end, avoidTolls);
 
         for (int i = 0; i < 3; i++) {
             RouteOption route = new RouteOption();
@@ -62,12 +72,7 @@ public class RouteService {
             route.setRiskLevel(Math.round(random.nextDouble() * 100) / 100.0);
             route.setWeather(weathers[random.nextInt(weathers.length)]);
 
-            // Geometría: la real desplazada levemente por variante para diferenciar trazados
-            if (base.geometry() != null) {
-                route.setGeometry(offset(base.geometry(), i * 0.002));
-            } else {
-                route.setGeometry(simpleLine(start, end));
-            }
+            route.setGeometry(base.geometry());
             route.setStartLat(start.lat());
             route.setStartLon(start.lon());
             route.setEndLat(end.lat());
@@ -75,21 +80,6 @@ public class RouteService {
             list.add(route);
         }
         return list;
-    }
-
-    private List<List<Double>> offset(List<List<Double>> geometry, double delta) {
-        List<List<Double>> shifted = new ArrayList<>();
-        for (List<Double> p : geometry) {
-            shifted.add(List.of(p.get(0) + delta, p.get(1) + delta));
-        }
-        return shifted;
-    }
-
-    private List<List<Double>> simpleLine(GeoService.GeoPoint a, GeoService.GeoPoint b) {
-        List<List<Double>> line = new ArrayList<>();
-        line.add(List.of(a.lon(), a.lat()));
-        line.add(List.of(b.lon(), b.lat()));
-        return line;
     }
 
     /**

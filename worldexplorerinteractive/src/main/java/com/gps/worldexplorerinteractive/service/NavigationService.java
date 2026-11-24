@@ -5,7 +5,9 @@ import com.gps.worldexplorerinteractive.model.RouteOption;
 import com.gps.worldexplorerinteractive.model.Trip;
 import com.gps.worldexplorerinteractive.repository.AlertEventRepository;
 import com.gps.worldexplorerinteractive.repository.TripRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -45,7 +47,10 @@ public class NavigationService {
      * posición (lat/lon), velocidad, giro próximo, distancia restante y ETA.
      * Si detecta velocidad excesiva o zona de riesgo, emite una alerta.
      */
-    public NavigationState update(Trip trip, RouteOption route) {
+    public NavigationState update(String tripId, RouteOption route) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No se encontró el viaje: " + tripId));
         double travelled = trip.getDistanceKm() > 0 ? trip.getDistanceKm() : 0;
         double remainingKm = Math.max(0.0, route.getDistanceKm() - travelled);
         double speedKmh = 40 + random.nextDouble() * 60;
@@ -93,7 +98,9 @@ public class NavigationService {
     }
 
     public Trip finishTrip(String tripId) {
-        Trip trip = tripRepository.findById(tripId).orElseThrow();
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No se encontró el viaje: " + tripId));
         trip.setFinishedAt(Instant.now());
         trip.setStatus("COMPLETADO");
         return tripRepository.save(trip);

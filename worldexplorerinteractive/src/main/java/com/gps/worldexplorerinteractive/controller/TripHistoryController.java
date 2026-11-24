@@ -23,7 +23,7 @@ public class TripHistoryController {
 
     @GetMapping("/trips")
     public List<Trip> all() {
-        return tripRepository.findAll();
+        return tripRepository.findAllByOrderByStartedAtDesc();
     }
 
     @GetMapping("/trips/{id}")

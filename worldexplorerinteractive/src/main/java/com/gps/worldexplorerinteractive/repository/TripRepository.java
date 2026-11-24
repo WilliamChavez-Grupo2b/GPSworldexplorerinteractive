@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface TripRepository extends MongoRepository<Trip, String> {
+    List<Trip> findAllByOrderByStartedAtDesc();
     List<Trip> findByUserIdOrderByStartedAtDesc(String userId);
     List<Trip> findByStatus(String status);
 }

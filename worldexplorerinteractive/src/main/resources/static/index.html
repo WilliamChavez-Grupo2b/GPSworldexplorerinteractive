@@ -8,9 +8,12 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
-  <h1>🚗 World Explorer GPS</h1>
-  <nav>
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">⌖</span>
+    <div><h1>World Explorer GPS</h1><p>Tu próxima ruta comienza aquí</p></div>
+  </div>
+  <nav aria-label="Navegación principal">
     <button data-tab="planificador" class="active">Planificador</button>
     <button data-tab="navegacion">Navegación</button>
     <button data-tab="alertas">Alertas</button>
@@ -19,66 +22,120 @@
   </nav>
 </header>
 
+<section class="hero">
+  <div class="hero-content">
+    <p class="eyebrow">Explora con confianza</p>
+    <h2>Cada viaje merece una gran ruta.</h2>
+    <p>Encuentra tu camino, descubre nuevos lugares y disfruta el viaje con información a tu alcance.</p>
+  </div>
+</section>
+
 <main>
   <!-- PLANIFICADOR -->
   <section id="planificador" class="tab active">
-    <h2>Planificar ruta</h2>
-    <form id="plan-form">
-      <label>Origen <input id="origin" required placeholder="Ej: Lima">
-        <button type="button" id="use-my-location" title="Usar mi ubicación actual">📍 Mi ubicación</button>
-      </label>
-      <label>Destino <input id="destination" required placeholder="Ej: Arequipa"></label>
-      <label><input type="checkbox" id="avoidTolls"> Evitar peajes</label>
-      <label><input type="checkbox" id="preferSafe"> Rutas seguras primero</label>
-      <button type="submit">Buscar ruta</button>
-    </form>
-    <p id="plan-error" class="error"></p>
-    <div id="map-plan" class="map"></div>
-    <div id="route-list"></div>
+    <div class="section-heading">
+      <h2>Planifica tu viaje</h2>
+      <p>Compara alternativas y elige la ruta que mejor se adapta a ti.</p>
+    </div>
+    <div class="panel">
+      <form id="plan-form">
+        <div class="form-grid">
+          <label for="origin">Punto de partida
+            <div class="autocomplete">
+              <input id="origin" required placeholder="Busca una ciudad o dirección" autocomplete="off"
+                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="origin-suggestions">
+              <ul id="origin-suggestions" class="suggestions" role="listbox" hidden></ul>
+            </div>
+            <span id="origin-coordinates" class="selected-coordinates" hidden></span>
+          </label>
+          <label for="destination">Destino
+            <div class="autocomplete">
+              <input id="destination" required placeholder="Busca una ciudad o dirección" autocomplete="off"
+                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="destination-suggestions">
+              <ul id="destination-suggestions" class="suggestions" role="listbox" hidden></ul>
+            </div>
+            <span id="destination-coordinates" class="selected-coordinates" hidden></span>
+          </label>
+        </div>
+        <div class="form-options">
+          <label class="check-label"><input type="checkbox" id="avoidTolls"> Evitar peajes</label>
+          <label class="check-label"><input type="checkbox" id="preferSafe"> Priorizar rutas seguras</label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="button">Buscar mejores rutas</button>
+          <button type="button" id="use-my-location" class="button secondary" title="Usar mi ubicación actual">⌖ Usar mi ubicación</button>
+        </div>
+      </form>
+      <p id="plan-error" class="error" role="status"></p>
+    </div>
+    <div class="panel">
+      <div class="map-heading"><h3>Mapa de ruta</h3><span>OpenStreetMap</span></div>
+      <div id="map-plan" class="map" aria-label="Mapa para planificar la ruta"></div>
+    </div>
+    <div id="route-list" class="route-list"></div>
   </section>
 
   <!-- NAVEGACION -->
   <section id="navegacion" class="tab">
-    <h2>Navegación en tiempo real</h2>
+    <div class="section-heading">
+      <h2>Navegación en tiempo real</h2>
+      <p>Sigue el trayecto y consulta el estado de tu viaje.</p>
+    </div>
     <div id="nav-empty">Selecciona una ruta en el Planificador para iniciar la navegación.</div>
-    <div id="nav-panel" class="hidden">
+    <div id="nav-panel" class="panel hidden">
       <div class="nav-grid">
-        <div class="card"><span id="nav-speed">0</span> km/h</div>
-        <div class="card">Pos: <span id="nav-pos">-</span></div>
-        <div class="card">Giro: <span id="nav-turn">-</span></div>
-        <div class="card">Restante: <span id="nav-remaining">0</span> km</div>
-        <div class="card">ETA: <span id="nav-eta">-</span> min</div>
-        </div>
-        <div id="map-nav" class="map"></div>
-      <button id="nav-start">▶ Iniciar navegación</button>
-      <button id="nav-update" disabled>🔄 Actualizar posición</button>
-      <button id="nav-finish" disabled>🏁 Terminar viaje</button>
+        <div class="card">Velocidad<span><span id="nav-speed">0</span> km/h</span></div>
+        <div class="card">Posición<span id="nav-pos">-</span></div>
+        <div class="card">Próximo giro<span id="nav-turn">-</span></div>
+        <div class="card">Distancia restante<span><span id="nav-remaining">0</span> km</span></div>
+        <div class="card">Tiempo estimado<span><span id="nav-eta">-</span> min</span></div>
+      </div>
+      <div class="map-heading"><h3>Tu recorrido</h3><span>Posición y ruta</span></div>
+      <div id="map-nav" class="map" aria-label="Mapa de navegación"></div>
+      <div class="nav-actions">
+        <button id="nav-start" class="button">Iniciar navegación</button>
+        <button id="add-route" class="button secondary">Agregar ruta</button>
+        <button id="nav-update" class="button secondary" disabled>Actualizar posición</button>
+        <button id="nav-finish" class="button light" disabled>Terminar viaje</button>
+      </div>
     </div>
   </section>
 
   <!-- ALERTAS -->
   <section id="alertas" class="tab">
-    <h2>Alertas de seguridad</h2>
-    <label>ID del viaje: <input id="alert-trip" placeholder="ID del viaje activo"></label>
-    <button id="alert-load">Consultar alertas</button>
-    <ul id="alert-list"></ul>
+    <div class="section-heading"><h2>Alertas de seguridad</h2><p>Consulta avisos asociados a tu viaje.</p></div>
+    <div class="panel">
+      <div class="inline-controls">
+        <label for="alert-trip">ID del viaje<input id="alert-trip" placeholder="ID del viaje activo"></label>
+        <button id="alert-load" class="button">Consultar alertas</button>
+      </div>
+      <ul id="alert-list"></ul>
+    </div>
   </section>
 
   <!-- HISTORIAL -->
   <section id="historial" class="tab">
-    <h2>Historial de viajes</h2>
-    <button id="history-load">Actualizar historial</button>
-    <table>
-      <thead><tr><th>Fecha</th><th>Origen</th><th>Destino</th><th>Ruta</th><th>Estado</th><th>Alertas</th></tr></thead>
-      <tbody id="history-body"></tbody>
-    </table>
+    <div class="section-heading"><h2>Historial de viajes</h2><p>Revisa tus trayectos anteriores.</p></div>
+    <div class="panel">
+      <button id="history-load" class="button secondary">Actualizar historial</button>
+      <p id="history-message" class="error" role="status"></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Inicio</th><th>Finalizó</th><th>Origen</th><th>Destino</th><th>Ruta</th><th>Distancia</th><th>Duración</th><th>Estado</th><th>Alertas</th><th>Detalles</th></tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- PREFERENCIAS -->
   <section id="preferencias" class="tab">
-    <h2>Preferencias del usuario</h2>
-    <form id="pref-form">
-      <label>Usuario (ID Mongo): <input id="pref-user" placeholder="userId"></label>
+    <div class="section-heading"><h2>Tus preferencias</h2><p>Personaliza el idioma, las unidades y las alertas.</p></div>
+    <div class="panel">
+      <form id="pref-form" class="preferences-form">
+      <label for="pref-user">Usuario (ID Mongo)
+        <input id="pref-user" placeholder="userId">
+      </label>
       <label>Idioma
         <select id="pref-lang"><option value="es">Español</option><option value="en">English</option></select>
       </label>
@@ -89,9 +146,10 @@
       <label>Tipo de alerta
         <select id="pref-alert"><option>AMBAS</option><option>VISUAL</option><option>SONORA</option></select>
       </label>
-      <button type="submit">Guardar preferencias</button>
-    </form>
-    <p id="pref-msg" class="ok"></p>
+      <div class="form-actions"><button type="submit" class="button">Guardar preferencias</button></div>
+      </form>
+      <p id="pref-msg" class="ok" role="status"></p>
+    </div>
   </section>
 </main>
 
