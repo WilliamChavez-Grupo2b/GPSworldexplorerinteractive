@@ -2,6 +2,65 @@
 const API = 'http://localhost:8080/api';
 let selectedRoute = null;
 let currentTripId = null;
+let planMap = null, planLine = null;
+let navMap = null, navLine = null, navMarker = null;
+let userLocation = null;
+
+// ---------- Mapas (geolocalizacion) ----------
+function initPlanMap() {
+  if (planMap) return;
+  planMap = L.map('map-plan').setView([-12.05, -77.04], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(planMap);
+  setTimeout(() => planMap.invalidateSize(), 100);
+}
+
+function initNavMap() {
+  if (navMap) return;
+  navMap = L.map('map-nav').setView([-12.05, -77.04], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(navMap);
+  setTimeout(() => navMap.invalidateSize(), 100);
+}
+
+function drawRouteOnPlanMap(route) {
+  initPlanMap();
+  if (planLine) planLine.remove();
+  if (route.geometry && route.geometry.length > 1) {
+    planLine = L.polyline(route.geometry, { color: '#2f7dfb', weight: 5 }).addTo(planMap);
+    planMap.fitBounds(planLine.getBounds().pad(0.15));
+  }
+}
+
+function drawRouteOnNavMap(route) {
+  initNavMap();
+  if (navLine) navLine.remove();
+  if (route.geometry && route.geometry.length > 1) {
+    navLine = L.polyline(route.geometry, { color: '#2f7dfb', weight: 5 }).addTo(navMap);
+    navMap.fitBounds(navLine.getBounds().pad(0.2));
+  }
+}
+
+// Botón "Mi ubicación": geolocalización del navegador
+ document.getElementById('use-my-location').addEventListener('click', () => {
+   if (!navigator.geolocation) {
+     document.getElementById('plan-error').textContent = 'Tu navegador no soporta geolocalización.';
+     return;
+   }
+   navigator.geolocation.getCurrentPosition(async (pos) => {
+     userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+     const originInput = document.getElementById('origin');
+     originInput.value = `${userLocation.lat.toFixed(5)}, ${userLocation.lon.toFixed(5)}`;
+     initPlanMap();
+     L.marker([userLocation.lat, userLocation.lon]).addTo(planMap)
+       .bindPopup('📍 Tu ubicación actual').openPopup();
+     planMap.setView([userLocation.lat, userLocation.lon], 14);
+   }, (err) => {
+     document.getElementById('plan-error').textContent = 'No se pudo obtener tu ubicación: ' + err.message;
+   }, { enableHighAccuracy: true, timeout: 10000 });
+ });
 
 // ---------- Navegación de pestañas ----------
 document.querySelectorAll('nav button').forEach(btn => {
@@ -34,6 +93,7 @@ document.getElementById('plan-form').addEventListener('submit', async (e) => {
   if (!routes) return;
   const list = document.getElementById('route-list');
   list.innerHTML = '';
+  drawRouteOnPlanMap(routes[0]);
   routes.forEach((r, i) => {
     const div = document.createElement('div');
     div.className = 'route-card';
@@ -49,6 +109,7 @@ document.getElementById('plan-form').addEventListener('submit', async (e) => {
     b.addEventListener('click', () => {
       selectedRoute = JSON.parse(b.dataset.route);
       currentTripId = null;
+      drawRouteOnNavMap(selectedRoute);
       document.getElementById('nav-empty').classList.add('hidden');
       document.getElementById('nav-panel').classList.remove('hidden');
       switchTab('navegacion');
@@ -99,6 +160,18 @@ async function updateNavigation(route) {
   document.getElementById('nav-turn').textContent = state.nextTurn;
   document.getElementById('nav-remaining').textContent = state.remainingKm;
   document.getElementById('nav-eta').textContent = state.etaMin;
+  document.getElementById('nav-pos').textContent = state.lat.toFixed(4) + ', ' + state.lon.toFixed(4);
+  // Mover marcador de posición en el mapa de navegación
+  if (navMap) {
+    if (!navMarker) {
+      navMarker = L.circleMarker([state.lat, state.lon], {
+        radius: 8, color: '#e74c3c', fillColor: '#e74c3c', fillOpacity: 1
+      }).addTo(navMap);
+    } else {
+      navMarker.setLatLng([state.lat, state.lon]);
+    }
+    navMap.setView([state.lat, state.lon], navMap.getZoom());
+  }
   if (state.arrived) {
     alert('¡Has llegado a tu destino!');
     document.getElementById('nav-update').disabled = true;

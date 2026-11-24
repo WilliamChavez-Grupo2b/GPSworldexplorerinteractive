@@ -2,6 +2,7 @@ package com.gps.worldexplorerinteractive.controller;
 
 import com.gps.worldexplorerinteractive.model.RouteOption;
 import com.gps.worldexplorerinteractive.model.Trip;
+import com.gps.worldexplorerinteractive.service.GeoService;
 import com.gps.worldexplorerinteractive.service.NavigationService;
 import com.gps.worldexplorerinteractive.service.RouteService;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,12 @@ public class RouteController {
 
     private final RouteService routeService;
     private final NavigationService navigationService;
+    private final GeoService geoService;
 
-    public RouteController(RouteService routeService, NavigationService navigationService) {
+    public RouteController(RouteService routeService, NavigationService navigationService, GeoService geoService) {
         this.routeService = routeService;
         this.navigationService = navigationService;
+        this.geoService = geoService;
     }
 
     /** RF-01 / RF-02: planificar rutas origen -> destino con preferencias. */
@@ -53,5 +56,20 @@ public class RouteController {
     @PostMapping("/trips/{tripId}/finish")
     public Trip finish(@PathVariable String tripId) {
         return navigationService.finishTrip(tripId);
+    }
+
+    /** RF-08: geocoding directo -> coordenadas geográficas. */
+    @GetMapping("/geocode")
+    public GeoService.GeoPoint geocode(@RequestParam String address) {
+        return geoService.geocode(address);
+    }
+
+    /** RF-08: mi ubicación actual (distancia con Haversine entre dos puntos). */
+    @GetMapping("/distance")
+    public Map<String, Object> distance(@RequestParam double lat1, @RequestParam double lon1,
+                                        @RequestParam double lat2, @RequestParam double lon2) {
+        double km = geoService.haversineKm(new GeoService.GeoPoint(lat1, lon1, "a"),
+                new GeoService.GeoPoint(lat2, lon2, "b"));
+        return Map.of("distanceKm", Math.round(km * 10) / 10.0);
     }
 }

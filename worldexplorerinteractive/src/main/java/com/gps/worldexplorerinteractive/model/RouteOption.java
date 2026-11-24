@@ -25,5 +25,10 @@ public class RouteOption {
     private double riskLevel;      // 0 = sin riesgo, 1 = riesgo alto
     private String weather;        // DESPEJADO | LLUVIA | NIEBLA | NIEVE
     private List<String> waypoints;
+    private List<List<Double>> geometry; // [[lon, lat], ...] trazado real de la ruta
+    private double startLat;
+    private double startLon;
+    private double endLat;
+    private double endLon;
     private double score;          // puntaje calculado por el servicio de optimización
 }

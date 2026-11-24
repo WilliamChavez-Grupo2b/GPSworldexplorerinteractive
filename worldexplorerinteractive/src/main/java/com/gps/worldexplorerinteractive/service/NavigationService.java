@@ -13,17 +13,23 @@ import java.util.Random;
 
 /**
  * Navegación en tiempo real y alertas de seguridad (RF-03, RF-04, RF-05).
+ * Usa la geometría geográfica de la ruta para interpolar la posición actual
+ * del vehículo y calcula el avance con fórmulas de geolocalización (Haversine).
  */
 @Service
 public class NavigationService {
 
     private final TripRepository tripRepository;
     private final AlertEventRepository alertEventRepository;
+    private final GeoService geoService;
     private final Random random = new Random();
 
-    public NavigationService(TripRepository tripRepository, AlertEventRepository alertEventRepository) {
+    public NavigationService(TripRepository tripRepository,
+                             AlertEventRepository alertEventRepository,
+                             GeoService geoService) {
         this.tripRepository = tripRepository;
         this.alertEventRepository = alertEventRepository;
+        this.geoService = geoService;
     }
 
     public Trip startTrip(Trip trip) {
@@ -35,16 +41,29 @@ public class NavigationService {
     }
 
     /**
-     * Simula un tick de navegación: posición, giro siguiente, distancia restante.
+     * Simula un tick de navegación sobre la ruta geográfica:
+     * posición (lat/lon), velocidad, giro próximo, distancia restante y ETA.
      * Si detecta velocidad excesiva o zona de riesgo, emite una alerta.
      */
     public NavigationState update(Trip trip, RouteOption route) {
-        double remainingKm = Math.max(0.0, route.getDistanceKm() - (trip.getDistanceKm() > 0 ? trip.getDistanceKm() : 0));
+        double travelled = trip.getDistanceKm() > 0 ? trip.getDistanceKm() : 0;
+        double remainingKm = Math.max(0.0, route.getDistanceKm() - travelled);
         double speedKmh = 40 + random.nextDouble() * 60;
-        String nextTurn = randomTurn();
+
+        // Posición geográfica interpolada sobre la geometría de la ruta
+        double fraction = route.getDistanceKm() > 0 ? travelled / route.getDistanceKm() : 1.0;
+        GeoService.GeoPoint position = geoService.interpolate(route.getGeometry(), fraction);
+        double lat = position != null ? position.lat() : route.getStartLat();
+        double lon = position != null ? position.lon() : route.getStartLon();
+
+        String nextTurn = nextTurn(route, fraction);
 
         List<String> events = trip.getEvents() != null ? trip.getEvents() : new java.util.ArrayList<>();
-        events.add("Avance a " + speedKmh + " km/h, próximo giro: " + nextTurn);
+        events.add(String.format("Avance a %.0f km/h en (%.4f, %.4f). Próximo giro: %s",
+                speedKmh, lat, lon, nextTurn));
+        if (events.size() > 50) {
+            events = events.subList(events.size() - 50, events.size());
+        }
 
         if (speedKmh > 80) {
             createAlert(trip.getId(), "VELOCIDAD", "Velocidad excesiva: " + Math.round(speedKmh) + " km/h (límite 80 km/h)");
@@ -57,13 +76,20 @@ public class NavigationService {
         }
 
         trip.setEvents(events);
-        trip.setDistanceKm(route.getDistanceKm() - remainingKm);
+        trip.setDistanceKm(travelled + (remainingKm > 0 ? Math.min(2.5, route.getDistanceKm() * 0.15) : 0));
         tripRepository.save(trip);
 
+        int etaMin = remainingKm > 0 ? (int) Math.ceil(remainingKm / (speedKmh / 60.0)) : 0;
         return new NavigationState(trip.getId(), (int) Math.round(speedKmh), nextTurn,
-                Math.round(remainingKm * 10) / 10.0,
-                remainingKm > 0 ? (int) Math.ceil(remainingKm / (speedKmh / 60.0)) : 0,
-                remainingKm <= 0);
+                Math.round(remainingKm * 10) / 10.0, etaMin, remainingKm <= 0, lat, lon);
+    }
+
+    /** Giro estimado según posición a lo largo de la ruta (cada ~25% del trazado). */
+    private String nextTurn(RouteOption route, double fraction) {
+        String[] turns = {"recto", "derecha", "recto", "izquierda"};
+        int idx = Math.min(3, (int) Math.floor(fraction * 4));
+        if (fraction >= 0.97) return "destino a la derecha";
+        return turns[idx];
     }
 
     public Trip finishTrip(String tripId) {
@@ -78,11 +104,7 @@ public class NavigationService {
         alertEventRepository.save(alert);
     }
 
-    private String randomTurn() {
-        String[] turns = {"derecha", "izquierda", "recto", "retorno"};
-        return turns[random.nextInt(turns.length)];
-    }
-
     public record NavigationState(String tripId, int speedKmh, String nextTurn,
-                                  double remainingKm, int etaMin, boolean arrived) {}
+                                  double remainingKm, int etaMin, boolean arrived,
+                                  double lat, double lon) {}
 }

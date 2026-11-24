@@ -10,22 +10,29 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Servicio de planificación y optimización de rutas.
- * Genera rutas candidatas simuladas (tráfico/clima) y las puntúa
- * según las preferencias del conductor (RF-01, RF-02, RF-04).
+ * Servicio de planificación y optimización de rutas (RF-01, RF-02, RF-04).
+ * Usa la API de geolocalización configurada para geocodificar origen/destino
+ * y calcular rutas reales con geometría; puntúa según preferencias del conductor.
  */
 @Service
 public class RouteService {
 
     private final RouteOptionRepository routeOptionRepository;
+    private final GeoService geoService;
+    private final Random random = new Random();
 
-    public RouteService(RouteOptionRepository routeOptionRepository) {
+    public RouteService(RouteOptionRepository routeOptionRepository, GeoService geoService) {
         this.routeOptionRepository = routeOptionRepository;
+        this.geoService = geoService;
     }
 
     public List<RouteOption> planRoutes(String origin, String destination,
                                         boolean avoidTolls, boolean preferSafeRoutes) {
-        List<RouteOption> options = generateCandidateRoutes(origin, destination);
+        // RF-08: geocodificación real de origen y destino mediante la API
+        GeoService.GeoPoint start = geoService.geocode(origin);
+        GeoService.GeoPoint end = geoService.geocode(destination);
+
+        List<RouteOption> options = generateCandidateRoutes(start, end);
         for (RouteOption r : options) {
             r.setScore(computeScore(r, avoidTolls, preferSafeRoutes));
         }
@@ -33,33 +40,63 @@ public class RouteService {
         return routeOptionRepository.saveAll(options);
     }
 
-    private List<RouteOption> generateCandidateRoutes(String origin, String destination) {
-        Random random = new Random();
-        String[] names = {"Ruta rápida", "Ruta segura", "Ruta panorámica", "Atajo", "Ruta sin peajes"};
+    private List<RouteOption> generateCandidateRoutes(GeoService.GeoPoint start, GeoService.GeoPoint end) {
+        String[] names = {"Ruta rápida", "Ruta segura", "Ruta panorámica"};
         String[] weathers = {"DESPEJADO", "LLUVIA", "NIEBLA", "NIEVE"};
         List<RouteOption> list = new ArrayList<>();
+
+        // Ruta base real calculada por la API (distancia, duración y geometría)
+        GeoService.GeoRoute base = geoService.directions(start, end);
+
         for (int i = 0; i < 3; i++) {
-            double distance = 10 + random.nextDouble() * 50;
-            double duration = distance * (0.9 + random.nextDouble() * 0.6);
             RouteOption route = new RouteOption();
-            route.setOrigin(origin);
-            route.setDestination(destination);
-            route.setName(names[i % names.length]);
-            route.setDistanceKm(Math.round(distance * 10) / 10.0);
-            route.setDurationMin(Math.round(duration * 10) / 10.0);
+            route.setOrigin(start.label());
+            route.setDestination(end.label());
+            route.setName(names[i]);
+
+            // Variantes de la ruta base: atajo (-8%), panorámica (+15%)
+            double factor = i == 0 ? 1.0 : (i == 1 ? 0.92 : 1.15);
+            route.setDistanceKm(Math.round(base.distanceKm() * factor * 10) / 10.0);
+            route.setDurationMin(Math.round(base.durationMin() * factor * (0.9 + random.nextDouble() * 0.4) * 10) / 10.0);
             route.setTrafficLevel(Math.round(random.nextDouble() * 100) / 100.0);
             route.setRiskLevel(Math.round(random.nextDouble() * 100) / 100.0);
             route.setWeather(weathers[random.nextInt(weathers.length)]);
+
+            // Geometría: la real desplazada levemente por variante para diferenciar trazados
+            if (base.geometry() != null) {
+                route.setGeometry(offset(base.geometry(), i * 0.002));
+            } else {
+                route.setGeometry(simpleLine(start, end));
+            }
+            route.setStartLat(start.lat());
+            route.setStartLon(start.lon());
+            route.setEndLat(end.lat());
+            route.setEndLon(end.lon());
             list.add(route);
         }
         return list;
+    }
+
+    private List<List<Double>> offset(List<List<Double>> geometry, double delta) {
+        List<List<Double>> shifted = new ArrayList<>();
+        for (List<Double> p : geometry) {
+            shifted.add(List.of(p.get(0) + delta, p.get(1) + delta));
+        }
+        return shifted;
+    }
+
+    private List<List<Double>> simpleLine(GeoService.GeoPoint a, GeoService.GeoPoint b) {
+        List<List<Double>> line = new ArrayList<>();
+        line.add(List.of(a.lon(), a.lat()));
+        line.add(List.of(b.lon(), b.lat()));
+        return line;
     }
 
     /**
      * Puntaje: menor distancia, menos tráfico, menos riesgo y mejor clima = mayor puntaje.
      */
     private double computeScore(RouteOption r, boolean avoidTolls, boolean preferSafeRoutes) {
-        double score = 100 - r.getDistanceKm();
+        double score = 100 - Math.min(80, r.getDistanceKm() / 2);
         score -= r.getTrafficLevel() * 30;
         score -= r.getRiskLevel() * (preferSafeRoutes ? 60 : 20);
         if ("LLUVIA".equals(r.getWeather())) score -= 10;

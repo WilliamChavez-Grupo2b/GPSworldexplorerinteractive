@@ -19,3 +19,13 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 table { width: 100%; border-collapse: collapse; margin-top: 12px; }
 th, td { border: 1px solid #475569; padding: 8px; text-align: left; }
 th { background: #1e293b; }
+
+/* Mapas de geolocalizacion (Leaflet) */
+.map {
+  height: 340px;
+  width: 100%;
+  border-radius: 10px;
+  margin: 12px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  z-index: 0;
+}

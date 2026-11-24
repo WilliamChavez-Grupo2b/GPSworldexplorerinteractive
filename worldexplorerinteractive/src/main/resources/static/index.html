@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Explorer GPS</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,13 +24,16 @@
   <section id="planificador" class="tab active">
     <h2>Planificar ruta</h2>
     <form id="plan-form">
-      <label>Origen <input id="origin" required placeholder="Ej: Lima"></label>
+      <label>Origen <input id="origin" required placeholder="Ej: Lima">
+        <button type="button" id="use-my-location" title="Usar mi ubicación actual">📍 Mi ubicación</button>
+      </label>
       <label>Destino <input id="destination" required placeholder="Ej: Arequipa"></label>
       <label><input type="checkbox" id="avoidTolls"> Evitar peajes</label>
       <label><input type="checkbox" id="preferSafe"> Rutas seguras primero</label>
       <button type="submit">Buscar ruta</button>
     </form>
     <p id="plan-error" class="error"></p>
+    <div id="map-plan" class="map"></div>
     <div id="route-list"></div>
   </section>
 
@@ -40,10 +44,12 @@
     <div id="nav-panel" class="hidden">
       <div class="nav-grid">
         <div class="card"><span id="nav-speed">0</span> km/h</div>
+        <div class="card">Pos: <span id="nav-pos">-</span></div>
         <div class="card">Giro: <span id="nav-turn">-</span></div>
         <div class="card">Restante: <span id="nav-remaining">0</span> km</div>
         <div class="card">ETA: <span id="nav-eta">-</span> min</div>
-      </div>
+        </div>
+        <div id="map-nav" class="map"></div>
       <button id="nav-start">▶ Iniciar navegación</button>
       <button id="nav-update" disabled>🔄 Actualizar posición</button>
       <button id="nav-finish" disabled>🏁 Terminar viaje</button>
@@ -89,6 +95,7 @@
   </section>
 </main>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
