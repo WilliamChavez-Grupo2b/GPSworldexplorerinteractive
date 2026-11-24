@@ -1,0 +1,371 @@
+﻿# Requerimientos y historias de usuario
+# Software de GPS automovilístico con configuración en Java y API REST
+
+## 1. Alcance propuesto
+Este documento define los requisitos funcionales, no funcionales e historias de usuario para un software de navegación automovilística orientado a conductores que necesiten buscar rutas más eficientes, seguras y cómodas dentro del vehículo. El sistema debe permitir planificar rutas, optimizarlas en tiempo real considerando tráfico y clima, gestionar configuraciones desde Java, y exponer servicios REST para integración con módulos internos y externos.
+
+## 2. Objetivo del sistema
+El sistema debe ayudar al conductor a llegar a su destino con la mejor ruta disponible, reduciendo tiempos de viaje, evitando congestionamientos, identificando condiciones climatológicas adversas y ofreciendo una experiencia de navegación clara, adaptable y segura.
+
+## 3. Requisitos funcionales
+
+### RF-01: Planificación de rutas
+El sistema debe permitir al conductor ingresar origen, destino y preferencias de ruta para generar una ruta óptima.
+
+### RF-02: Optimización de rutas con tráfico y clima
+El sistema debe evaluar condiciones en tiempo real de tráfico, clima y eventos relevantes para sugerir la ruta más efectiva y segura.
+
+### RF-03: Seguimiento en tiempo real
+El sistema debe ofrecer seguimiento de la ruta activa, indicación de giros, distancia restante y tiempo estimado de llegada.
+
+### RF-04: Reencaminamiento dinámico
+Cuando el conductor se desvíe de la ruta planificada o aparezcan condiciones nuevas, el sistema debe recalcular automáticamente una nueva sugerencia de ruta.
+
+### RF-05: Alertas de seguridad
+El sistema debe alertar al conductor sobre velocidad excesiva, zonas de riesgo, desvíos peligrosos, condiciones climáticas adversas o rutas con alto riesgo.
+
+### RF-06: Historial de viajes
+El sistema debe registrar viajes realizados, incluyendo fecha, origen, destino, ruta seleccionada, duración, eventos relevantes y condiciones observadas.
+
+### RF-07: Preferencias del usuario
+El sistema debe permitir configurar idioma, unidad de distancia, volumen de voz, tipo de alerta y preferencias visuales.
+
+### RF-08: Configuración Java del sistema
+El sistema debe permitir configurar parámetros clave desde archivos o propiedades Java, como API de mapas, URL de servicios, conectividad, intervalo de actualización, perfiles de entorno y límites de alerta.
+
+### RF-09: Servicios REST para integración
+El sistema debe exponer endpoints REST para consultar rutas, registrar eventos, consultar historial, obtener preferencias y gestionar configuraciones operativas apoyadas por Java.
+
+### RF-10: Recuperación y continuidad
+El sistema debe conservar la última ruta activa, configuración y estado relevante para continuar el recorrido tras reinicio o reconexión.
+
+### RF-11: Autenticación y autorización
+El sistema debe restringir accesos según el rol del usuario, evitando que un conductor acceda a información administrativa sensible.
+
+### RF-12: Administración de flota (opcional)
+El administrador de flota debe poder consultar ubicaciones, tiempos de llegada y estados de vehículos asociados a su flota.
+
+## 4. Requisitos no funcionales
+
+### RNF-01: Rendimiento
+El sistema debe responder a consultas de ruta y consulta de estado en tiempos razonables para una experiencia fluida dentro del vehículo.
+
+### RNF-02: Disponibilidad
+El sistema debe mantener un funcionamiento continuo y tolerar interrupciones temporales de conectividad mediante recuperación automática de sesión y continuidad de navegación.
+
+### RNF-03: Seguridad
+El sistema debe proteger datos del usuario, autenticación, integridad de las comunicaciones y acceso por roles, especialmente en servicios REST y configuración de entornos.
+
+### RNF-04: Escalabilidad
+La solución debe soportar crecimiento en cantidad de usuarios, rutas consultadas, eventos generados y servicios integrados sin degradar el rendimiento general.
+
+### RNF-05: Configurabilidad
+La configuración del sistema debe gestionarse mediante perfiles Java como dev, qa y prod, con validación clara de propiedades y valores críticos.
+
+### RNF-06: Compatibilidad
+El sistema debe ser compatible con dispositivos y navegadores o clientes que consuman la API REST, manteniendo un comportamiento consistente en distintos entornos operativos.
+
+### RNF-07: Mantenibilidad
+El código y la arquitectura deben estar organizados de forma clara para facilitar cambios en rutas, integración con APIs externas, configuración y evolución de reglas de negocio.
+
+### RNF-08: Observabilidad
+El sistema debe registrar eventos clave, errores, tiempos de respuesta y cambios de estado para facilitar diagnóstico y monitoreo.
+
+### RNF-09: Privacidad y trazabilidad
+El sistema debe conservar solo la información necesaria para historial, eventos y auditoría, evitando exposición innecesaria de datos personales sensibles.
+
+## 5. Historias de usuario
+
+### HU-01: Buscar una ruta eficiente con tráfico y clima
+**Como** conductor  
+**Quiero** ingresar mi origen y destino, junto con mis preferencias de ruta  
+**Para** obtener la ruta más efectiva, segura y cómoda posible considerando tráfico y clima.
+
+**Validación INVEST**
+- I — Independent: ✅ Se puede desarrollar sin depender de otras historias principales.
+- N — Negotiable: ✅ Define el valor sin imponer una solución técnica específica.
+- V — Valuable: ✅ Ayuda al conductor a evitar retrasos y condiciones adversas.
+- E — Estimable: ✅ Tiene alcance y datos claramente identificables.
+- S — Small: ✅ Es una funcionalidad acotada y entregable en iteración corta.
+- T — Testable: ✅ Puede validarse con escenarios de entrada y salida.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Búsqueda de rutas eficientes
+
+  Escenario: El conductor solicita una ruta con tráfico y clima
+    Dado que el conductor ha ingresado un origen y un destino válidos
+    Y ha configurado sus preferencias de ruta
+    Cuando solicita la ruta
+    Entonces el sistema debe devolver una o más rutas sugeridas
+    Y debe incluir distancia estimada, tiempo estimado y factores relevantes como tráfico o clima
+
+  Escenario: El conductor ingresa datos incompletos
+    Dado que el conductor ha ingresado un destino inexistente o incompleto
+    Cuando solicita la ruta
+    Entonces el sistema debe mostrar un mensaje de error claro
+    Y no debe generar una ruta inválida o incompleta
+```
+
+---
+
+### HU-02: Seguir la navegación en tiempo real
+**Como** conductor  
+**Quiero** visualizar indicaciones en tiempo real durante el recorrido  
+**Para** llegar a mi destino sin perder orientación ni cometer errores de ruta.
+
+**Validación INVEST**
+- I — Independent: ✅ Puede entregarse como funcionalidad principal del sistema.
+- N — Negotiable: ✅ Define comportamiento sin fijar tecnología interna.
+- V — Valuable: ✅ Aporta valor inmediato durante el viaje.
+- E — Estimable: ✅ Tiene flujo claro y datos definidos.
+- S — Small: ✅ Es un flujo acotado.
+- T — Testable: ✅ Puede verificarse con escenarios reales.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Seguimiento de navegación en tiempo real
+
+  Escenario: El conductor inicia el recorrido
+    Dado que el conductor ya ha generado una ruta válida
+    Cuando inicia la navegación
+    Entonces el sistema debe mostrar la ruta activa
+    Y debe actualizar la posición, giros y distancia restante en tiempo real
+
+  Escenario: El conductor se desvía de la ruta
+    Dado que el conductor ha iniciado la navegación
+    Cuando se desvía de la ruta planificada
+    Entonces el sistema debe identificar la desviación
+    Y debe sugerir una nueva ruta de reencaminamiento
+```
+
+---
+
+### HU-03: Recibir alertas de seguridad y condiciones adversas
+**Como** conductor  
+**Quiero** recibir alertas sobre velocidad, zonas de riesgo, tráfico intenso y clima adverso  
+**Para** conducir con mayor seguridad y evitar incidentes.
+
+**Validación INVEST**
+- I — Independent: ✅ Es una funcionalidad útil por sí sola.
+- N — Negotiable: ✅ No obliga a una implementación técnica concreta.
+- V — Valuable: ✅ Reduce riesgos y mejora la toma de decisiones.
+- E — Estimable: ✅ Tiene reglas claras y datos suficientes.
+- S — Small: ✅ Puede entregarse en una iteración.
+- T — Testable: ✅ Puede verificarse con escenarios concretos.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Alertas de seguridad y clima
+
+  Escenario: El conductor excede el límite de velocidad
+    Dado que el conductor está en movimiento
+    Cuando supera el límite de velocidad configurado
+    Entonces el sistema debe emitir una alerta visual o sonora
+    Y debe mostrar el límite vigente
+
+  Escenario: El vehículo entra en una zona de riesgo
+    Dado que existe una zona de riesgo definida en el sistema
+    Cuando el vehículo entra en esa zona
+    Entonces el sistema debe emitir una alerta de advertencia
+    Y debe registrar el evento en el historial del viaje
+```
+
+---
+
+### HU-04: Consultar historial de viajes y eventos relevantes
+**Como** conductor  
+**Quiero** revisar mis viajes anteriores y los eventos relevantes ocurridos durante el recorrido  
+**Para** analizar rutas utilizadas, tiempos, condiciones y comportamiento de conducción.
+
+**Validación INVEST**
+- I — Independent: ✅ Puede implementarse sin bloquear otras historias.
+- N — Negotiable: ✅ Define valor y alcance, dejando abierta la estructura técnica.
+- V — Valuable: ✅ Aporta trazabilidad y análisis útil para el usuario.
+- E — Estimable: ✅ Se sabe qué datos deben almacenarse.
+- S — Small: ✅ Tiene alcance acotado.
+- T — Testable: ✅ Se puede comprobar por consulta de registros.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Historial de viajes
+
+  Escenario: El conductor consulta un viaje previo
+    Dado que el conductor ha completado al menos un viaje
+    Cuando solicita el historial de viajes
+    Entonces el sistema debe mostrar una lista de viajes anteriores
+    Y cada elemento debe incluir fecha, hora, duración, origen, destino y ruta asociada
+
+  Escenario: El conductor no tiene viajes registrados
+    Dado que aún no ha completado ningún viaje
+    Cuando solicita el historial
+    Entonces el sistema debe mostrar un mensaje de sin resultados
+    Y no debe mostrar información de otros usuarios
+```
+
+---
+
+### HU-05: Configurar preferencias y experiencia del usuario
+**Como** conductor  
+**Quiero** personalizar mi idioma, unidades, avisos y visualización  
+**Para** usar el sistema con una experiencia adaptada a mi estilo de conducción.
+
+**Validación INVEST**
+- I — Independent: ✅ Funciona sin depender del recorrido activo.
+- N — Negotiable: ✅ El valor del negocio es claro, pero la interfaz puede ajustarse.
+- V — Valuable: ✅ Mejora la usabilidad y la personalización.
+- E — Estimable: ✅ Tiene parámetros claramente definidos.
+- S — Small: ✅ Es un módulo acotado y entregable.
+- T — Testable: ✅ Puede verificarse con escenarios positivos y negativos.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Configuración de preferencias
+
+  Escenario: El usuario guarda una configuración válida
+    Dado que el usuario ha modificado sus preferencias
+    Cuando guarda los cambios
+    Entonces el sistema debe persistir la nueva configuración
+    Y debe aplicarla en la siguiente sesión del usuario
+
+  Escenario: El usuario cancela la edición
+    Dado que el usuario ha abierto la pantalla de configuración
+    Cuando cancela los cambios
+    Entonces el sistema debe conservar la configuración previa
+    Y no debe aplicar cambios parciales
+```
+
+---
+
+### HU-06: Configurar parámetros del sistema desde Java
+**Como** administrador  
+**Quiero** definir propiedades del sistema mediante configuración Java  
+**Para** adaptar la aplicación a diferentes entornos y mantener una operación consistente.
+
+**Validación INVEST**
+- I — Independent: ✅ Es una funcionalidad administrativa separada del flujo de navegación.
+- N — Negotiable: ✅ Define el objetivo sin imponer una estructura técnica rígida.
+- V — Valuable: ✅ Facilita despliegue en entornos dev, qa y prod.
+- E — Estimable: ✅ Se conocen los parámetros a configurar.
+- S — Small: ✅ Puede entregarse con un conjunto inicial de propiedades.
+- T — Testable: ✅ Puede validarse con perfiles y valores esperados.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Configuración Java del sistema
+
+  Escenario: El administrador configura un perfil de entorno
+    Dado que el sistema tiene múltiples perfiles disponibles
+    Cuando el administrador selecciona y guarda un perfil válido
+    Entonces el sistema debe cargar la configuración correspondiente
+    Y debe aplicar los valores esperados en tiempo de ejecución
+
+  Escenario: El administrador ingresa una configuración inválida
+    Dado que el administrador ha definido un valor fuera de rango o nulo
+    Cuando guarda la configuración
+    Entonces el sistema debe rechazar los cambios
+    Y debe mostrar un mensaje claro de validación
+```
+
+---
+
+### HU-07: Consumo de servicios REST del sistema
+**Como** desarrollador o cliente del sistema  
+**Quiero** consumir endpoints REST para rutas, historial, eventos y configuración  
+**Para** integrar el GPS con otros módulos internos y servicios externos.
+
+**Validación INVEST**
+- I — Independent: ✅ Puede desarrollarse sin bloquear otras historias principales.
+- N — Negotiable: ✅ Permite definir contratos de integración con libertad técnica.
+- V — Valuable: ✅ Facilita interoperabilidad y extensibilidad del sistema.
+- E — Estimable: ✅ Los recursos y endpoints son claramente identificables.
+- S — Small: ✅ Puede entregarse en una iteración inicial.
+- T — Testable: ✅ Puede validarse mediante pruebas de API y respuestas esperadas.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Integración por API REST
+
+  Escenario: Un cliente consulta una ruta por API
+    Dado que el cliente envía origen, destino y preferencias válidas
+    Cuando invoca el endpoint de rutas
+    Entonces el sistema debe responder con el resultado esperado
+    Y debe devolver estado HTTP correcto junto con los datos de ruta
+
+  Escenario: Un cliente intenta consultar una ruta inválida
+    Dado que el cliente envía parámetros incompletos o incorrectos
+    Cuando invoca el endpoint de rutas
+    Entonces el sistema debe responder con un error claro
+    Y no debe devolver información parcial o errónea
+```
+
+---
+
+### HU-08: Supervisar flota y estado de vehículos (opcional)
+**Como** administrador de flota  
+**Quiero** consultar ubicación, tiempos de llegada y estado operativo de los vehículos  
+**Para** controlar y coordinar mejor la operación de la flota.
+
+**Validación INVEST**
+- I — Independent: ✅ Tiene valor por sí mismo.
+- N — Negotiable: ✅ No fuerza una solución técnica exacta.
+- V — Valuable: ✅ Mejora supervisión operativa.
+- E — Estimable: ✅ El contenido funcional es claro.
+- S — Small: ✅ Puede realizarse en una iteración.
+- T — Testable: ✅ Puede validarse con casos de lectura y alerta.
+
+**Criterios de aceptación (Gherkin)**
+```gherkin
+# language: es
+Característica: Supervisión de flota
+
+  Escenario: El administrador consulta vehículos activos
+    Dado que existen vehículos asociados a la flota
+    Cuando solicita la vista de flota
+    Entonces el sistema debe mostrar ubicación actual y estado operativo de cada vehículo
+
+  Escenario: Un vehículo no reporta posición
+    Dado que un vehículo está asignado a la flota
+    Cuando el sistema no recibe datos recientes de ubicación
+    Entonces debe marcar el vehículo como sin señal o inactivo
+    Y debe registrar la alerta correspondiente
+```
+
+## 6. Resumen de requisitos
+- RF-01: Generar rutas según origen, destino y preferencias.
+- RF-02: Optimizar rutas considerando tráfico y clima.
+- RF-03: Mostrar navegación en tiempo real con indicaciones guiadas.
+- RF-04: Recalcular rutas ante cambios de trayecto o condiciones.
+- RF-05: Emitir alertas de seguridad y condiciones adversas.
+- RF-06: Registrar historial de viajes y eventos relevantes.
+- RF-07: Permitir personalización de preferencias del usuario.
+- RF-08: Configurar parámetros clave del sistema desde Java.
+- RF-09: Exponer servicios REST para integración con otros módulos.
+- RF-10: Recuperar el último estado del sistema tras reinicio.
+- RF-11: Garantizar autenticación y permisos por rol.
+- RF-12: Permitir supervisión operativa de flota cuando aplique.
+
+## 7. Resumen de requisitos no funcionales
+- RNF-01: El sistema debe responder con rapidez en consultas de ruta y estado.
+- RNF-02: Debe ofrecer continuidad ante fallas temporales de red o reinicios.
+- RNF-03: Debe proteger APIs, configuración y datos del usuario.
+- RNF-04: Debe soportar crecimiento en volumen de consultas y usuarios.
+- RNF-05: Debe permitir configuración por perfiles Java.
+- RNF-06: Debe operar de forma consistente en distintos entornos.
+- RNF-07: Debe mantenerse fácil de extender y modificar.
+- RNF-08: Debe registrar eventos, errores y tiempos de respuesta.
+- RNF-09: Debe respetar privacidad y trazabilidad de datos.
+
+## 8. Recomendación final
+Para convertir este documento en artefactos ejecutables, el siguiente paso ideal es:
+1. separar cada historia en un archivo Markdown individual;
+2. priorizar un MVP con rutas, navegación en tiempo real, alertas y configuración Java;
+3. definir contratos REST y perfiles de entorno para Java;
+4. convertir las historias en tareas técnicas con estimación y dependencias.

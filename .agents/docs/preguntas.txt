@@ -1,0 +1,9 @@
+# Preguntas para aclarar requisitos y alcance
+
+1. ¿Se requiere un módulo de suscripción o pago para funciones premium, como mapas sin conexión, alertas avanzadas o historial prolongado?
+2. ¿La API REST debe incluir autenticación por token o por sesión, o se permitirá acceso abierto para ciertos endpoints?
+3. ¿El sistema debe soportar mapas offline desde el inicio o solo como opción futura?
+4. ¿Se requiere integración con servicios externos de tráfico y clima en tiempo real, o se puede asumir un proveedor interno y simulado en una primera versión?
+5. ¿La gestión de flota será obligatoria para el MVP o se considera un alcance opcional?
+6. ¿Se requieren perfiles de entorno adicionales además de dev, qa y prod, como staging o demo?
+7. ¿La persistencia del historial debe almacenarse localmente en el vehículo, en un backend central, o en ambos?

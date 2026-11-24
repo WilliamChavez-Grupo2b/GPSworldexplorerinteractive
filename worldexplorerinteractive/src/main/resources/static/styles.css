@@ -1,0 +1,21 @@
+body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+header { background: #1e293b; padding: 16px 24px; }
+header h1 { margin: 0 0 10px; font-size: 1.4rem; }
+nav button { background: #334155; color: #e2e8f0; border: none; padding: 8px 16px; margin-right: 6px; border-radius: 6px; cursor: pointer; }
+nav button.active { background: #38bdf8; color: #0f172a; font-weight: 600; }
+main { padding: 24px; max-width: 900px; margin: auto; }
+.tab { display: none; }
+.tab.active { display: block; }
+form label { display: block; margin: 10px 0; }
+input, select { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; padding: 8px; border-radius: 6px; margin-left: 6px; }
+button { background: #38bdf8; color: #0f172a; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 6px 4px 6px 0; font-weight: 600; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.route-card, .card { background: #1e293b; border: 1px solid #475569; border-radius: 10px; padding: 14px; margin: 10px 0; }
+.nav-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.nav-grid .card { text-align: center; font-size: 1.2rem; }
+.error { color: #f87171; }
+.ok { color: #4ade80; }
+.hidden { display: none; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { border: 1px solid #475569; padding: 8px; text-align: left; }
+th { background: #1e293b; }

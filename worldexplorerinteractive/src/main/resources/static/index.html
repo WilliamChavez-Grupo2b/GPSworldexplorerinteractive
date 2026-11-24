@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Explorer GPS</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>🚗 World Explorer GPS</h1>
+  <nav>
+    <button data-tab="planificador" class="active">Planificador</button>
+    <button data-tab="navegacion">Navegación</button>
+    <button data-tab="alertas">Alertas</button>
+    <button data-tab="historial">Historial</button>
+    <button data-tab="preferencias">Preferencias</button>
+  </nav>
+</header>
+
+<main>
+  <!-- PLANIFICADOR -->
+  <section id="planificador" class="tab active">
+    <h2>Planificar ruta</h2>
+    <form id="plan-form">
+      <label>Origen <input id="origin" required placeholder="Ej: Lima"></label>
+      <label>Destino <input id="destination" required placeholder="Ej: Arequipa"></label>
+      <label><input type="checkbox" id="avoidTolls"> Evitar peajes</label>
+      <label><input type="checkbox" id="preferSafe"> Rutas seguras primero</label>
+      <button type="submit">Buscar ruta</button>
+    </form>
+    <p id="plan-error" class="error"></p>
+    <div id="route-list"></div>
+  </section>
+
+  <!-- NAVEGACION -->
+  <section id="navegacion" class="tab">
+    <h2>Navegación en tiempo real</h2>
+    <div id="nav-empty">Selecciona una ruta en el Planificador para iniciar la navegación.</div>
+    <div id="nav-panel" class="hidden">
+      <div class="nav-grid">
+        <div class="card"><span id="nav-speed">0</span> km/h</div>
+        <div class="card">Giro: <span id="nav-turn">-</span></div>
+        <div class="card">Restante: <span id="nav-remaining">0</span> km</div>
+        <div class="card">ETA: <span id="nav-eta">-</span> min</div>
+      </div>
+      <button id="nav-start">▶ Iniciar navegación</button>
+      <button id="nav-update" disabled>🔄 Actualizar posición</button>
+      <button id="nav-finish" disabled>🏁 Terminar viaje</button>
+    </div>
+  </section>
+
+  <!-- ALERTAS -->
+  <section id="alertas" class="tab">
+    <h2>Alertas de seguridad</h2>
+    <label>ID del viaje: <input id="alert-trip" placeholder="ID del viaje activo"></label>
+    <button id="alert-load">Consultar alertas</button>
+    <ul id="alert-list"></ul>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section id="historial" class="tab">
+    <h2>Historial de viajes</h2>
+    <button id="history-load">Actualizar historial</button>
+    <table>
+      <thead><tr><th>Fecha</th><th>Origen</th><th>Destino</th><th>Ruta</th><th>Estado</th><th>Alertas</th></tr></thead>
+      <tbody id="history-body"></tbody>
+    </table>
+  </section>
+
+  <!-- PREFERENCIAS -->
+  <section id="preferencias" class="tab">
+    <h2>Preferencias del usuario</h2>
+    <form id="pref-form">
+      <label>Usuario (ID Mongo): <input id="pref-user" placeholder="userId"></label>
+      <label>Idioma
+        <select id="pref-lang"><option value="es">Español</option><option value="en">English</option></select>
+      </label>
+      <label>Unidad
+        <select id="pref-unit"><option value="km">Kilómetros</option><option value="mi">Millas</option></select>
+      </label>
+      <label>Volumen de voz <input type="number" id="pref-vol" min="0" max="100" value="50"></label>
+      <label>Tipo de alerta
+        <select id="pref-alert"><option>AMBAS</option><option>VISUAL</option><option>SONORA</option></select>
+      </label>
+      <button type="submit">Guardar preferencias</button>
+    </form>
+    <p id="pref-msg" class="ok"></p>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
